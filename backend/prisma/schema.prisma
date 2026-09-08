@@ -1,0 +1,253 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// -----------------------------------------------------------------------------
+// CORE USER TABLES
+// -----------------------------------------------------------------------------
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  avatar    String?
+  plan      String   @default("Free") // Free, Pro, Enterprise
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile      UserProfile?
+  preferences  UserPreference?
+  bookmarks    Bookmark[]
+  history      ReadingHistory[]
+  follows      UserEntityFollow[]
+  notificationPrefs NotificationPreference?
+}
+
+model UserProfile {
+  id         String @id @default(uuid())
+  userId     String @unique
+  country    String
+  state      String
+  district   String
+  city       String
+  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserPreference {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  languages    String[]
+  briefingTime String   @default("07:30 AM")
+  defaultFeed  String   @default("for-you")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model NotificationPreference {
+  id         String  @id @default(uuid())
+  userId     String  @unique
+  breaking   Boolean @default(true)
+  important  Boolean @default(true)
+  following  Boolean @default(true)
+  local      Boolean @default(true)
+  dailyBrief Boolean @default(true)
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// -----------------------------------------------------------------------------
+// NEWS SOURCE & ARTICLE TABLES
+// -----------------------------------------------------------------------------
+
+model Source {
+  id               String   @id @default(uuid())
+  name             String
+  domain           String
+  logo             String?
+  credibilityScore Int      @default(50) // 0-100
+  status           String   @default("Healthy") // Healthy, Warning, Failed
+  articles         Article[]
+  storySources     StorySource[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Article {
+  id          String   @id @default(uuid())
+  sourceId    String
+  title       String
+  url         String
+  hash        String   @unique
+  publishedAt DateTime
+  createdAt   DateTime @default(now())
+  source      Source   @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+}
+
+// -----------------------------------------------------------------------------
+// STORY SYSTEM
+// -----------------------------------------------------------------------------
+
+model Story {
+  id              String   @id @default(uuid())
+  slug            String   @unique
+  category        String
+  headline        String
+  subheadline     String?
+  publishedAt     DateTime
+  readTimeMinutes Int      @default(3)
+  isTrending      Boolean  @default(false)
+  trendingScore   Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  aiSummary       AiSummary?
+  impact          StoryImpact?
+  verification    StoryVerification?
+
+  sources         StorySource[]
+  timeline        StoryTimelineEvent[]
+  entities        StoryEntity[]
+  bookmarks       Bookmark[]
+  history         ReadingHistory[]
+}
+
+model StorySource {
+  storyId      String
+  sourceId     String
+  articleUrl   String?  // The actual article URL used in synthesis
+  articleTitle String?  // The actual article headline
+  story        Story   @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  source       Source  @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@id([storyId, sourceId])
+}
+
+model StoryTimelineEvent {
+  id          String   @id @default(uuid())
+  storyId     String
+  timestamp   String
+  timeLabel   String
+  title       String
+  description String
+  sourceName  String
+  story       Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+}
+
+// -----------------------------------------------------------------------------
+// AI INTELLIGENCE
+// -----------------------------------------------------------------------------
+
+model AiSummary {
+  id        String @id @default(uuid())
+  storyId   String @unique
+  short     String
+  detailed  String
+  keyFacts  String[]
+  story     Story  @relation(fields: [storyId], references: [id], onDelete: Cascade)
+}
+
+model StoryImpact {
+  id               String   @id @default(uuid())
+  storyId          String   @unique
+  potentialLevel   String   // LOW, MEDIUM, HIGH, CRITICAL
+  direction        String   // Positive, Neutral, Negative, Mixed
+  confidence       Int
+  timeHorizon      String
+  whyItMatters     String
+  uncertaintyNotes String?
+  story            Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  domains          ImpactDomain[]
+}
+
+model ImpactDomain {
+  id             String      @id @default(uuid())
+  storyImpactId  String
+  name           String
+  level          String
+  description    String
+  impact         StoryImpact @relation(fields: [storyImpactId], references: [id], onDelete: Cascade)
+}
+
+model StoryVerification {
+  id            String   @id @default(uuid())
+  storyId       String   @unique
+  status        String   // Well corroborated, Partially corroborated...
+  confidence    Int
+  consensus     String[]
+  differences   String[]
+  unclear       String[]
+  story         Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  claims        Claim[]
+}
+
+model Claim {
+  id                  String             @id @default(uuid())
+  storyVerificationId String
+  text                String
+  status              String             // Supported, Disputed, Unverified
+  confidence          Int
+  supportingSources   String[]
+  contradictingSources String[]          @default([])
+  verification        StoryVerification  @relation(fields: [storyVerificationId], references: [id], onDelete: Cascade)
+}
+
+// -----------------------------------------------------------------------------
+// TOPICS & ENTITIES
+// -----------------------------------------------------------------------------
+
+model Entity {
+  id             String   @id @default(uuid())
+  slug           String   @unique
+  name           String
+  type           String   // Topic, Company, Person, Location, Publisher
+  followersCount Int      @default(0)
+  stories        StoryEntity[]
+  followers      UserEntityFollow[]
+}
+
+model StoryEntity {
+  storyId  String
+  entityId String
+  story    Story   @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  entity   Entity  @relation(fields: [entityId], references: [id], onDelete: Cascade)
+
+  @@id([storyId, entityId])
+}
+
+model UserEntityFollow {
+  userId   String
+  entityId String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entity   Entity @relation(fields: [entityId], references: [id], onDelete: Cascade)
+
+  @@id([userId, entityId])
+}
+
+// -----------------------------------------------------------------------------
+// ACTIVITY & SOCIAL
+// -----------------------------------------------------------------------------
+
+model Bookmark {
+  id        String   @id @default(uuid())
+  userId    String
+  storyId   String
+  folderId  String?  // Optional folder grouping
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  story     Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, storyId])
+}
+
+model ReadingHistory {
+  id        String   @id @default(uuid())
+  userId    String
+  storyId   String
+  readAt    DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  story     Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+}
+

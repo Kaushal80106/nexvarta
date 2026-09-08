@@ -1,0 +1,151 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-secondary: var(--surface-secondary);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-cyan: var(--cyan);
+  
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  
+  --color-border: var(--border);
+  
+  --color-positive: var(--positive);
+  --color-warning: var(--warning);
+  --color-negative: var(--negative);
+}
+
+@layer base {
+  :root {
+    /* DARK MODE (DEFAULT) */
+    --background: #080B12;
+    --surface: #10141D;
+    --surface-secondary: #171C27;
+    --primary: #8B6CFF;
+    --primary-hover: #7655F5;
+    --cyan: #22D3EE;
+    --text-primary: #F8FAFC;
+    --text-secondary: #CBD5E1;
+    --text-muted: #94A3B8;
+    --border: #252B38;
+    --positive: #22C55E;
+    --warning: #F59E0B;
+    --negative: #EF4444;
+    color-scheme: dark;
+  }
+
+  [data-theme="light"],
+  .light {
+    /* LIGHT MODE */
+    --background: #F7F8FA;
+    --surface: #FFFFFF;
+    --surface-secondary: #F1F3F6;
+    --primary: #6D4AFF;
+    --primary-hover: #5B3FD6;
+    --cyan: #0891B2;
+    --text-primary: #111827;
+    --text-secondary: #4B5563;
+    --text-muted: #6B7280;
+    --border: #E5E7EB;
+    --positive: #16A34A;
+    --warning: #D97706;
+    --negative: #DC2626;
+    color-scheme: light;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--text-primary);
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    overflow-x: hidden;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+  }
+}
+
+/* Base utility overrides for legacy classes until refactored */
+.bg-\[\#080B12\] { background-color: var(--background) !important; }
+.bg-\[\#080B12\]\/60 { background-color: var(--background) !important; }
+.bg-\[\#10141D\] { background-color: var(--surface) !important; }
+.bg-\[\#171C27\] { background-color: var(--surface-secondary) !important; }
+.bg-\[\#7C5CFF\] { background-color: var(--primary) !important; }
+
+.text-\[\#F8FAFC\] { color: var(--text-primary) !important; }
+.text-\[\#94A3B8\] { color: var(--text-muted) !important; }
+.text-\[\#7C5CFF\] { color: var(--primary) !important; }
+.text-\[\#22D3EE\] { color: var(--cyan) !important; }
+.text-slate-200 { color: var(--text-secondary) !important; }
+.text-slate-300 { color: var(--text-secondary) !important; }
+.text-slate-400 { color: var(--text-muted) !important; }
+
+.border-\[\#252B38\] { border-color: var(--border) !important; }
+.border-slate-800 { border-color: var(--border) !important; }
+
+/* Remove excessive hover borders */
+.hover\:border-\[\#7C5CFF\]\/50:hover, 
+.hover\:border-\[\#7C5CFF\]\/40:hover { 
+  border-color: var(--primary) !important; 
+}
+
+/* AI Summary Block Styles */
+[data-theme="light"] .ai-summary-block,
+.light .ai-summary-block {
+  background-color: #F5F3FF !important;
+  border-color: #DDD6FE !important;
+  color: #111827 !important;
+}
+
+.ai-summary-block {
+  background-color: #151322 !important;
+  border-color: #30265C !important;
+  color: #F8FAFC !important;
+}
+
+/* Semantic UI Enhancements */
+.card-shadow {
+  box-shadow: 0 8px 30px rgba(0,0,0,0.18);
+}
+[data-theme="light"] .card-shadow,
+.light .card-shadow {
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 8px 24px rgba(0,0,0,0.04);
+}
+
+.editorial-tab {
+  position: relative;
+}
+.editorial-tab-active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--primary);
+  border-radius: 2px 2px 0 0;
+}
+
+@keyframes wordSlide {
+  0%, 25% { transform: translateY(0); }
+  33%, 58% { transform: translateY(-24px); }
+  66%, 91% { transform: translateY(-48px); }
+  100% { transform: translateY(0); }
+}

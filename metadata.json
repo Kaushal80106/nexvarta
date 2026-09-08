@@ -1,0 +1,6 @@
+{
+  "name": "NexVarta",
+  "description": "AI-powered News Intelligence Platform: Discover, Understand, Verify, Predict, Decide.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
