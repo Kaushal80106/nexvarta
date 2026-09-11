@@ -197,5 +197,5 @@ NexVarta uses Large Language Models (LLMs) to synthesize information. While prom
 
 ## Author
 
-**Kaush**  
+**Kaushal**  
 Full-Stack Developer & AI Enthusiast
